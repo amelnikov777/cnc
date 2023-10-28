@@ -10,7 +10,7 @@ import (
 
 var array []string
 var Header map[string]string
-var Details map[string]string
+var Details map[string]map[string]int
 
 func main() {
 	Header = make(map[string]string)
@@ -20,16 +20,32 @@ func main() {
 	MakeHeader([]string{"OrderName"}, 4)
 	MakeHeader([]string{"Material"}, 7)
 	MakeHeader([]string{"MaterialThickness"}, 8)
-	Details = make(map[string]string)
+	MakeHeader([]string{"_", "DetailsQty"}, 15)
+	if Header["DetailsQty"] == "" {
+		MakeHeader([]string{"_", "DetailsQty"}, 17)
+		Header["DetailStartIndex"] = "18"
+	} else {
+		Header["DetailStartIndex"] = "16"
+	}
+
+	// Details = make(map[string]map[string]int)
+
+	Details = map[string]map[string]int{
+		"деталь1": {"длина": 1, "ширина": 2},
+		"деталь2": {"длина": 3, "ширина": 4},
+	}
+	fmt.Println(Details)
 
 	printarray(Header)
+	printdetails(Details)
 }
 
-func MakeHeader(param []string, line int) { //сделать функцию стения одной строки с передачей yjvthf строки в масиве array и возврате среза разобранных значений
+func MakeHeader(param []string, line int) {
 	key := 0
 	for _, ii := range array[line] {
-		if string(ii) != "X" && string(ii) != "_" {
-			Header[strconv.Itoa(line)+param[key]] += string(ii)
+		if string(ii) != "X" && string(ii) != "_" && string(ii) != ">" {
+			// Header[strconv.Itoa(line)+param[key]] += string(ii)
+			Header[param[key]] += string(ii)
 		} else {
 			key++
 		}
@@ -62,6 +78,13 @@ func printarray(array map[string]string) {
 			fmt.Println(i, " ", iiint)
 		} else {
 			fmt.Println(i, " ", ii)
+		}
+	}
+}
+func printdetails(array map[string]map[string]int) {
+	for i, ii := range array {
+		for j, jj := range ii {
+			fmt.Println(i, " ", j, " ", jj)
 		}
 	}
 }
