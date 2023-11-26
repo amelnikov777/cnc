@@ -47,6 +47,7 @@ func main() {
 	}
 
 	printdetails(Details)
+	// fmt.Println(Details)
 }
 
 func MakeHeader(param []string, line int) {
@@ -99,7 +100,7 @@ func printdetails(array map[string]map[string]int) {
 	sort.Strings(keys)
 	for _, i := range keys {
 		fmt.Println(i)
-		fmt.Print("PlateNumber ", array[i]["PlateNumber"], " DetailLenght ", array[i]["DetailLenght"], " DetailWidth ", array[i]["DetailWidth"], " X ", array[i]["X"], " Y ", array[i]["Y"])
+		fmt.Print(" PlateNumber ", array[i]["PlateNumber"], " Rotate ", array[i]["Rotate90"], " DetailLenght ", array[i]["DetailLenght"], " DetailWidth ", array[i]["DetailWidth"], " X ", array[i]["X"], " Y ", array[i]["Y"], " KL ", array[i]["DetailKantLenght"], " KW ", array[i]["DetailKantWidth"], " GL ", array[i]["DetailGrooveLenght"], " GW ", array[i]["DetailGrooveWidth"])
 		fmt.Println()
 	}
 }
@@ -117,6 +118,7 @@ func MakeDetail(Index int) {
 	DetailNam := array[Index+2]
 	DetailName := DetailNam[2:]
 	DetailList := DetailsConvert(Index)
+	DetailKant := DetailsConvert(Index + 1)
 	// Details = map[string]map[string]int{
 	// 	DetailName: {"DetailLenght": DetailList[0], "DetailWidth": DetailList[1], "DetailQty": DetailList[2]},
 	// }
@@ -126,15 +128,30 @@ func MakeDetail(Index int) {
 	for DetailIndex < DetailScanStop {
 		DetailNumber++
 		DetailProperty := DetailsConvert(DetailIndex)
+		Rotate := 0
+		PlateNumber := 0
+		if DetailProperty[0] < 999 {
+			Rotate = DetailProperty[0] / 10 % 10
+			PlateNumber = DetailProperty[0] % 10
+		} else {
+			Rotate = DetailProperty[0] / 100 % 10
+			PlateNumber = DetailProperty[0] % 100
+		}
 		Details[DetailName+" "+strconv.Itoa(DetailList[0])+" "+strconv.Itoa(DetailList[1])+" "+strconv.Itoa(DetailNumber)] = map[string]int{
 
-			"DetailLenght": DetailList[0],
-			"DetailWidth":  DetailList[1],
-			"DetailQty":    DetailList[2],
-			"DetailNumber": DetailNumber,
-			"PlateNumber":  DetailProperty[0] % 10,
-			"X":            DetailProperty[2],
-			"Y":            DetailProperty[3],
+			"DetailLenght":       DetailList[0],
+			"DetailWidth":        DetailList[1],
+			"DetailQty":          DetailList[2],
+			"DetailNumber":       DetailNumber,
+			"DetailKantLenght":   DetailKant[0],
+			"DetailKantWidth":    DetailKant[1],
+			"DetailGrooveLenght": DetailKant[2],
+			"DetailGrooveWidth":  DetailKant[3],
+			"Rotate90":           Rotate,
+			"PlateNumber":        PlateNumber,
+			"X":                  DetailProperty[2],
+			"Y":                  DetailProperty[3],
+			//добавить поворот
 		}
 		DetailIndex++
 	}
