@@ -13,8 +13,12 @@ var array []string
 var Header map[string]string
 var Details map[string]map[string]int
 var DetailIndex int
+var CutDepth int
+var ZforMoving int
 
 func main() {
+	CutDepth = 3.0   //Enter deep
+	ZforMoving = 5.0 //Safety Я for moving cuter to points
 	Header = make(map[string]string)
 	Details = make(map[string]map[string]int)
 	ReadFile()
@@ -32,8 +36,6 @@ func main() {
 	}
 	DetailStopIndex()
 
-	printarray(Header)
-
 	DetailStartIndex, _ := strconv.Atoi(Header["DetailStartIndex"])
 	DetailStopIndex, _ := strconv.Atoi(Header["DetailStopIndex"])
 	// for i := DetailStartIndex; i <= DetailStopIndex; i++ {
@@ -46,8 +48,50 @@ func main() {
 
 	}
 
-	printdetails(Details)
+	// printarray(Header)
+	// printdetails(Details)
 	// fmt.Println(Details)
+	CallPlate()
+}
+
+func MakeGcode(X, Y, DetailLenght, DetailWidth float32) {
+	var CutClear float32
+	MaterialThickness, _ := strconv.Atoi(Header["MaterialThickness"])
+	Steps := MaterialThickness / CutDepth
+	CutThickness, _ := strconv.Atoi(Header["CutThickness"])
+	CutClear = float32(CutThickness) / float32(2)
+	//fmt.Println("MaterialThickness: ", MaterialThickness, " CutDepth: ", CutDepth, " Steps: ", Steps, " CutClear: ", CutClear)
+	fmt.Print("G0Z", ZforMoving, "\n")
+	fmt.Print("G0", "X", X-CutClear, "Y", Y-CutClear, "\n")
+	for i := 1; i <= Steps; i++ {
+		fmt.Print("G1Z", -1*i*CutDepth, "\n")
+		fmt.Print("G1", "X", X-CutClear, "Y", Y+DetailLenght+CutClear, "\n")
+		fmt.Print("G1", "X", X+DetailWidth+CutClear, "Y", Y+DetailLenght+CutClear, "\n")
+		fmt.Print("G1", "X", X+DetailWidth+CutClear, "Y", Y-CutClear, "\n")
+		fmt.Print("G1", "X", X-CutClear, "Y", Y-CutClear, "\n")
+	}
+	fmt.Print("G1Z", -1*MaterialThickness-1, "\n")
+	fmt.Print("G1", "X", X-CutClear, "Y", Y+DetailLenght+CutClear, "\n")
+	fmt.Print("G1", "X", X+DetailWidth+CutClear, "Y", Y+DetailLenght+CutClear, "\n")
+	fmt.Print("G1", "X", X+DetailWidth+CutClear, "Y", Y-CutClear, "\n")
+	fmt.Print("G1", "X", X-CutClear, "Y", Y-CutClear, "\n")
+	fmt.Print("G0Z", ZforMoving, "\n")
+}
+
+func CallPlate() {
+	PlatesQty, _ := strconv.Atoi(Header["PlatesQty"])
+	for j := 1; j <= PlatesQty; j++ {
+		for i, ii := range Details {
+			if ii["PlateNumber"] == j {
+				fmt.Println(";PlateNum :", j, " ", i, " - ", ii["X"], " ", ii["Y"], " ", ii["Rotate90"], " ", ii["DetailLenght"], " ", ii["DetailWidth"])
+				if ii["Rotate90"] == 1 {
+					MakeGcode(float32(ii["X"]), float32(ii["Y"]), float32(ii["DetailLenght"]), float32(ii["DetailWidth"]))
+				} else {
+					MakeGcode(float32(ii["X"]), float32(ii["Y"]), float32(ii["DetailWidth"]), float32(ii["DetailLenght"]))
+				}
+			}
+		}
+	}
 }
 
 func MakeHeader(param []string, line int) {
@@ -139,18 +183,18 @@ func MakeDetail(Index int) {
 		}
 		Details[DetailName+" "+strconv.Itoa(DetailList[0])+" "+strconv.Itoa(DetailList[1])+" "+strconv.Itoa(DetailNumber)] = map[string]int{
 
-			"DetailLenght":       DetailList[0],
-			"DetailWidth":        DetailList[1],
+			"DetailLenght":       DetailList[1],
+			"DetailWidth":        DetailList[0],
 			"DetailQty":          DetailList[2],
 			"DetailNumber":       DetailNumber,
-			"DetailKantLenght":   DetailKant[0],
-			"DetailKantWidth":    DetailKant[1],
-			"DetailGrooveLenght": DetailKant[2],
-			"DetailGrooveWidth":  DetailKant[3],
+			"DetailKantLenght":   DetailKant[1],
+			"DetailKantWidth":    DetailKant[0],
+			"DetailGrooveLenght": DetailKant[3],
+			"DetailGrooveWidth":  DetailKant[2],
 			"Rotate90":           Rotate,
 			"PlateNumber":        PlateNumber,
-			"X":                  DetailProperty[2],
-			"Y":                  DetailProperty[3],
+			"Y":                  DetailProperty[2],
+			"X":                  DetailProperty[3],
 			//добавить поворот
 		}
 		DetailIndex++
